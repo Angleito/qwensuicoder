@@ -1,0 +1,54 @@
+# Qwen Sui Coder Training Configuration
+
+# Model configuration
+model:
+  base_model: "Qwen/Qwen2.5-14B"
+  output_dir: "./trained_models"
+  use_lora: true
+  lora_config:
+    r: 16
+    lora_alpha: 32
+    lora_dropout: 0.05
+    bias: "none"
+    target_modules:
+      - "q_proj"
+      - "k_proj"
+      - "v_proj"
+      - "o_proj"
+    task_type: "CAUSAL_LM"
+
+# Training parameters
+training:
+  train_batch_size: 4
+  eval_batch_size: 4
+  num_train_epochs: 3
+  learning_rate: 2.0e-5
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  gradient_accumulation_steps: 8
+  gradient_checkpointing: true
+  fp16: true
+  bf16: false
+  max_grad_norm: 0.3
+  logging_steps: 10
+  eval_steps: 100
+  save_steps: 100
+  save_total_limit: 3
+
+# Data configuration
+data:
+  train_file: "data/training/combined_train.jsonl"
+  validation_file: "data/validation/combined_val.jsonl"
+  max_seq_length: 2048
+  preprocessing_num_workers: 4
+  
+# Sui specific configuration
+sui:
+  include_move_examples: true
+  include_typescript_sdk: true
+  include_python_sdk: true
+  training_data_ratio:
+    move: 0.5
+    typescript: 0.4
+    python: 0.1 
