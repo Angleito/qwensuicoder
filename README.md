@@ -1,6 +1,6 @@
 # QwenSuiCoder
 
-A project to fine-tune Qwen2.5-Coder models for Sui Move smart contract development and SDK usage using PyTorch and SLoRA.
+A lightweight project to fine-tune Qwen2.5-1.5B-Instruct model for Sui Move smart contract development and SDK usage using PyTorch and SLoRA.
 
 ## Project Overview
 
@@ -11,12 +11,12 @@ QwenSuiCoder aims to create a specialized LLM capable of:
 
 ## Features
 
-- **Qwen2.5-Coder Models**: Uses the latest state-of-the-art Qwen2.5-Coder models (0.5B to 32B parameters)
+- **Optimized for Qwen2.5-1.5B-Instruct**: Focuses on the efficient 1.5B parameter model that balances performance and resource requirements
 - **Pure PyTorch Implementation**: No dependencies on Hugging Face
 - **SLoRA Fine-tuning**: Efficient parameter-efficient fine-tuning with Sparse Low-Rank Adaptation
-- **Hardware-aware Benchmarking**: Automatically finds optimal model size and settings for your hardware
+- **Hardware-aware Benchmarking**: Automatically optimizes training for resource-constrained environments
 - **Unified Management**: Single interface for benchmarking, training, and inference
-- **Ollama Integration**: Automatically configures the best model in Ollama for easy deployment
+- **Ollama Integration**: Automatically configures the model in Ollama for easy deployment
 
 ## Project Structure
 
@@ -42,7 +42,7 @@ qwensuicoder/
 - Python 3.9+
 - PyTorch with CUDA support
 - Ollama installed and in PATH
-- GPU with sufficient VRAM (at least 8GB recommended)
+- GPU with at least 4GB VRAM (for 1.5B model)
 
 ### Environment Setup
 
@@ -61,7 +61,7 @@ chmod +x run_qwen_pytorch.sh model_manager.py
 ## The Complete Pipeline
 
 We've created a unified pipeline to:
-1. Benchmark your hardware to find the best Qwen2.5-Coder model size
+1. Benchmark your hardware to optimize the 1.5B model configuration
 2. Fine-tune the model with SLoRA for your specific use case
 3. Configure Ollama for easy model deployment and inference
 
@@ -74,9 +74,9 @@ The easiest way to get started is with our interactive script:
 ```
 
 This script provides a menu-driven interface with the following options:
-1. Run benchmark to find optimal model
+1. Run benchmark to optimize model settings
 2. Train model with SLora
-3. Configure Ollama with best model
+3. Configure Ollama with the model
 4. Run inference with Ollama
 5. Run inference with PyTorch
 6. Run full pipeline (benchmark → train → configure)
@@ -87,12 +87,12 @@ For programmatic control, use the model manager:
 
 ```bash
 # Run benchmark
-python model_manager.py --action benchmark --max-model-size 14
+python model_manager.py --action benchmark --max-model-size 1.5
 
 # Train model with SLora
 python model_manager.py --action train --epochs 3 --learning-rate 2e-4
 
-# Configure Ollama with best model
+# Configure Ollama with optimized model
 python model_manager.py --action configure-ollama
 
 # Run inference with Ollama
@@ -102,19 +102,19 @@ python model_manager.py --action infer-ollama --prompt "Write a Sui Move smart c
 python model_manager.py --action infer-pytorch --prompt "Write a Sui Move smart contract for a counter."
 ```
 
-## Qwen2.5-Coder Models
+## Qwen2.5 Models
 
-This project supports the following Qwen2.5-Coder models:
+This project primarily uses the Qwen2.5-1.5B-Instruct model, which offers an excellent balance of performance and efficiency:
 
 | Model | Parameters | Min VRAM | Description |
 |-------|------------|----------|-------------|
-| Qwen2.5-Coder-0.5B | 0.5B | 2GB | Smallest model, good for limited hardware |
-| Qwen2.5-Coder-1.5B | 1.5B | 4GB | Good balance for consumer GPUs |
-| Qwen2.5-Coder-7B | 7B | 8GB | Recommended minimum for serious code generation |
-| Qwen2.5-Coder-14B | 14B | 16GB | Excellent performance/size tradeoff |
-| Qwen2.5-Coder-32B | 32B | 32GB | State-of-the-art performance, requires high-end GPU |
+| Qwen2.5-0.5B-Instruct | 0.5B | 2GB | Smallest model, good for extremely limited hardware |
+| Qwen2.5-1.5B-Instruct | 1.5B | 4GB | **Recommended** - Excellent balance for consumer GPUs |
+| Qwen2.5-7B-Instruct | 7B | 8GB | Larger model if you have more resources available |
+| Qwen2.5-14B-Instruct | 14B | 16GB | High-performance model requiring high-end GPU |
+| Qwen2.5-32B-Instruct | 32B | 32GB | State-of-the-art performance, requires server-grade GPU |
 
-The benchmark will automatically find the best model for your hardware and configure it for both PyTorch and Ollama.
+The 1.5B model is the focus of this project as it provides good performance while being accessible to developers with consumer-grade GPUs.
 
 ## SLoRA: Sparse Low-Rank Adaptation
 

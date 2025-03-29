@@ -76,12 +76,12 @@ class QwenCoderManager:
                 logger.error(f"Error loading Ollama config: {e}")
         return {}
     
-    def run_benchmark(self, max_model_size=32, configure_ollama=True) -> Dict[str, Any]:
+    def run_benchmark(self, max_model_size=1.5, configure_ollama=True) -> Dict[str, Any]:
         """
         Run benchmark to find the optimal model and settings
         
         Args:
-            max_model_size: Maximum model size to test in billions of parameters
+            max_model_size: Maximum model size to test in billions of parameters (default: 1.5B)
             configure_ollama: Whether to configure Ollama with the best model
             
         Returns:
@@ -368,35 +368,23 @@ class QwenCoderManager:
             return f"Error generating response: {str(e)}"
 
 def main():
-    parser = argparse.ArgumentParser(description="Qwen2.5-Coder Model Manager")
-    
-    # Main arguments
+    """Command line interface for model manager"""
+    parser = argparse.ArgumentParser(description="Qwen2.5-1.5B Model Manager")
     parser.add_argument("--action", type=str, required=True, 
-                        choices=["benchmark", "train", "infer-ollama", "infer-pytorch", "configure-ollama"],
+                        choices=["benchmark", "train", "configure-ollama", "infer-ollama", "infer-pytorch"],
                         help="Action to perform")
-    
-    # Benchmark arguments
-    parser.add_argument("--max-model-size", type=int, default=32,
-                        help="Maximum model size to test in billions of parameters")
-    
-    # Training arguments
-    parser.add_argument("--epochs", type=int, default=3,
-                        help="Number of epochs to train for")
-    parser.add_argument("--learning-rate", type=float, default=2e-4,
+    parser.add_argument("--max-model-size", type=float, default=1.5, 
+                        help="Maximum model size in billions of parameters (default: 1.5)")
+    parser.add_argument("--epochs", type=int, default=3, 
+                        help="Number of epochs for training")
+    parser.add_argument("--learning-rate", type=float, default=2e-4, 
                         help="Learning rate for training")
-    parser.add_argument("--output-dir", type=str, default=None,
-                        help="Directory to save trained model")
-    
-    # Inference arguments
-    parser.add_argument("--prompt", type=str, default="Hello, how are you?",
+    parser.add_argument("--output-dir", type=str, default=None, 
+                        help="Output directory for trained model")
+    parser.add_argument("--prompt", type=str, default="", 
                         help="Prompt for inference")
-    parser.add_argument("--no-slora", action="store_true",
-                        help="Don't use SLora weights for PyTorch inference")
-    
-    # General arguments
-    parser.add_argument("--force", action="store_true",
-                        help="Force reconfiguration even if already configured")
-    
+    parser.add_argument("--force", action="store_true", 
+                        help="Force reconfiguration of Ollama")
     args = parser.parse_args()
     
     # Create manager
