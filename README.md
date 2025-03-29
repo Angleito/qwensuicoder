@@ -1,6 +1,6 @@
 # QwenSuiCoder
 
-A project to fine-tune Qwen 2.5 14B Coder model for Sui Move smart contract development and SDK usage.
+A project to fine-tune Qwen2.5-Coder models for Sui Move smart contract development and SDK usage using PyTorch and SLoRA.
 
 ## Project Overview
 
@@ -9,28 +9,30 @@ QwenSuiCoder aims to create a specialized LLM capable of:
 - Working with Sui SDKs in TypeScript and Python
 - Following best practices for the Sui blockchain ecosystem
 
+## Features
+
+- **Qwen2.5-Coder Models**: Uses the latest state-of-the-art Qwen2.5-Coder models (0.5B to 32B parameters)
+- **Pure PyTorch Implementation**: No dependencies on Hugging Face
+- **SLoRA Fine-tuning**: Efficient parameter-efficient fine-tuning with Sparse Low-Rank Adaptation
+- **Hardware-aware Benchmarking**: Automatically finds optimal model size and settings for your hardware
+- **Unified Management**: Single interface for benchmarking, training, and inference
+- **Ollama Integration**: Automatically configures the best model in Ollama for easy deployment
+
 ## Project Structure
 
 ```
 qwensuicoder/
-├── benchmark_qwen_coder.py   # Benchmark script for Qwen 2.5 Coder 14B
-├── train_qwen_coder.py       # Optimized training script for Qwen 2.5 Coder 14B
-├── run_qwen_training.sh      # All-in-one script for benchmarking and training
-├── config/                   # Configuration files for model training
-├── data/
-│   ├── raw/                  # Raw training data
-│   ├── processed/            # Processed data ready for training
-│   ├── training/             # Training datasets
-│   └── validation/           # Validation datasets
-├── examples/
-│   ├── move/                 # Example Sui Move smart contracts
-│   ├── typescript/           # TypeScript SDK usage examples
-│   └── python/               # Python SDK usage examples
-├── scripts/                  # Utility scripts for data preparation and training
-└── src/
-    ├── training/             # Training code
-    ├── evaluation/           # Evaluation metrics and testing
-    └── utils/                # Utility functions
+├── benchmark_qwen_pytorch.py   # Benchmark script for finding the best Qwen2.5-Coder model
+├── train_qwen_pytorch.py       # Training script with SLoRA implementation
+├── model_manager.py            # Unified interface for PyTorch, Ollama, and SLora
+├── run_qwen_pytorch.sh         # Interactive script for the entire pipeline
+├── clear_cuda_cache.py         # Utility to maximize available GPU memory
+├── config/                     # Configuration files for model training
+├── data/                       # Training data directory
+├── examples/                   # Example Sui Move code and SDK usage
+├── benchmark_results/          # Benchmark results and optimal settings
+├── trained_models/             # Directory for saving trained models
+└── ollama_config/              # Ollama configuration files
 ```
 
 ## Setup
@@ -38,11 +40,9 @@ qwensuicoder/
 ### Prerequisites
 
 - Python 3.9+
-- PyTorch
-- Transformers
-- DeepSpeed
-- PEFT (Parameter-Efficient Fine-Tuning)
-- Hugging Face account with access to Qwen models
+- PyTorch with CUDA support
+- Ollama installed and in PATH
+- GPU with sufficient VRAM (at least 8GB recommended)
 
 ### Environment Setup
 
@@ -54,83 +54,76 @@ source venv/bin/activate
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Setup TypeScript environment (if working with TS examples)
-npm install
+# Make scripts executable
+chmod +x run_qwen_pytorch.sh model_manager.py
 ```
 
-### Hugging Face Access
+## The Complete Pipeline
 
-To access the Qwen models for training, you'll need to:
+We've created a unified pipeline to:
+1. Benchmark your hardware to find the best Qwen2.5-Coder model size
+2. Fine-tune the model with SLoRA for your specific use case
+3. Configure Ollama for easy model deployment and inference
 
-1. Create a [Hugging Face account](https://huggingface.co/join)
-2. Accept the terms of use for the [Qwen2.5 Coder model](https://huggingface.co/Qwen/Qwen2.5-14B-Coder)
-3. Generate an [access token](https://huggingface.co/settings/tokens)
-4. Set the token in your environment:
-   ```bash
-   export HF_TOKEN=your_token_here
-   ```
-   
-   Alternatively, create a token file:
-   ```bash
-   mkdir -p ~/.huggingface
-   echo "your_token_here" > ~/.huggingface/token
-   ```
+### Interactive Script
 
-## Benchmarking and Training
-
-We've implemented a streamlined workflow to benchmark your hardware and train the model with optimal settings:
-
-### All-in-One Script
-
-The easiest way to get started is with our all-in-one script:
+The easiest way to get started is with our interactive script:
 
 ```bash
-./run_qwen_training.sh
+./run_qwen_pytorch.sh
 ```
 
-This script will:
-1. Check prerequisites
-2. Run the benchmark to determine optimal settings for your hardware
-3. Train the model using the benchmark results and DeepSpeed optimizations
+This script provides a menu-driven interface with the following options:
+1. Run benchmark to find optimal model
+2. Train model with SLora
+3. Configure Ollama with best model
+4. Run inference with Ollama
+5. Run inference with PyTorch
+6. Run full pipeline (benchmark → train → configure)
 
-### Manual Process
+### Model Manager
 
-If you prefer to run the steps manually:
+For programmatic control, use the model manager:
 
-1. **Run the benchmark to find optimal settings**:
-   ```bash
-   python benchmark_qwen_coder.py --output_dir benchmark_results
-   ```
-   This tests Qwen 2.5 Coder 14B with different quantization methods and context lengths.
+```bash
+# Run benchmark
+python model_manager.py --action benchmark --max-model-size 14
 
-2. **Train with optimized settings**:
-   ```bash
-   python train_qwen_coder.py \
-     --model_name "Qwen/Qwen2.5-14B-Coder" \
-     --auto_optimize \
-     --settings_file "benchmark_results/optimal_settings.json" \
-     --use_lora \
-     --deepspeed
-   ```
+# Train model with SLora
+python model_manager.py --action train --epochs 3 --learning-rate 2e-4
 
-## Using the Trained Model
+# Configure Ollama with best model
+python model_manager.py --action configure-ollama
 
-After training is complete, you can use the model:
+# Run inference with Ollama
+python model_manager.py --action infer-ollama --prompt "Write a Sui Move smart contract for a counter."
 
-```python
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-# Load the fine-tuned model
-tokenizer = AutoTokenizer.from_pretrained("./trained_models/qwen_coder_14b")
-model = AutoModelForCausalLM.from_pretrained("./trained_models/qwen_coder_14b")
-
-# Generate Sui Move code
-prompt = "Write a Sui Move smart contract for an NFT collection"
-inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-outputs = model.generate(**inputs, max_length=2048)
-response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-print(response)
+# Run inference with PyTorch directly
+python model_manager.py --action infer-pytorch --prompt "Write a Sui Move smart contract for a counter."
 ```
+
+## Qwen2.5-Coder Models
+
+This project supports the following Qwen2.5-Coder models:
+
+| Model | Parameters | Min VRAM | Description |
+|-------|------------|----------|-------------|
+| Qwen2.5-Coder-0.5B | 0.5B | 2GB | Smallest model, good for limited hardware |
+| Qwen2.5-Coder-1.5B | 1.5B | 4GB | Good balance for consumer GPUs |
+| Qwen2.5-Coder-7B | 7B | 8GB | Recommended minimum for serious code generation |
+| Qwen2.5-Coder-14B | 14B | 16GB | Excellent performance/size tradeoff |
+| Qwen2.5-Coder-32B | 32B | 32GB | State-of-the-art performance, requires high-end GPU |
+
+The benchmark will automatically find the best model for your hardware and configure it for both PyTorch and Ollama.
+
+## SLoRA: Sparse Low-Rank Adaptation
+
+SLoRA extends LoRA by adding sparsity to the low-rank matrices, further improving parameter efficiency:
+
+- **Memory efficiency**: Requires up to 95% less memory than full fine-tuning
+- **Training speed**: Trains significantly faster than full fine-tuning
+- **Size efficiency**: SLoRA weights are typically <10MB regardless of model size
+- **Task adaptability**: Performs exceptionally well on domain-specific tasks
 
 ## License
 
