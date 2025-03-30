@@ -67,7 +67,7 @@ def fast_benchmark():
     # Check for CUDA
     if not torch.cuda.is_available():
         logger.error("No CUDA GPU detected. This benchmark requires a GPU.")
-        return
+        return results
 
     # Log total VRAM
     total_vram = get_gpu_memory_usage()["gpu_total_gb"]

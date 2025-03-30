@@ -1,0 +1,174 @@
+{
+  "model_loading": [
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "load_time_seconds": 2.546377420425415,
+      "memory_usage": {
+        "ram_used_gb": 0.01690673828125,
+        "gpu_allocated_gb": 1.8633646965026855
+      },
+      "precision": "fp32"
+    },
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "load_time_seconds": 2.4284327030181885,
+      "memory_usage": {
+        "ram_used_gb": -0.003765106201171875,
+        "gpu_allocated_gb": 1.8633646965026855
+      },
+      "precision": "fp16"
+    },
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "load_time_seconds": 2.5519046783447266,
+      "memory_usage": {
+        "ram_used_gb": 0.13364791870117188,
+        "gpu_allocated_gb": 1.8633646965026855
+      },
+      "precision": "int8"
+    },
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "load_time_seconds": 3.5473885536193848,
+      "memory_usage": {
+        "ram_used_gb": 0.010951995849609375,
+        "gpu_allocated_gb": 1.8633646965026855
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "load_time_seconds": 7.576021671295166,
+      "memory_usage": {
+        "ram_used_gb": 0.00182342529296875,
+        "gpu_allocated_gb": 5.5880351066589355
+      },
+      "precision": "fp32"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "load_time_seconds": 7.2542724609375,
+      "memory_usage": {
+        "ram_used_gb": -0.004596710205078125,
+        "gpu_allocated_gb": 5.5880351066589355
+      },
+      "precision": "fp16"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "load_time_seconds": 7.550710678100586,
+      "memory_usage": {
+        "ram_used_gb": 0.001338958740234375,
+        "gpu_allocated_gb": 5.5880351066589355
+      },
+      "precision": "int8"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "load_time_seconds": 7.3821799755096436,
+      "memory_usage": {
+        "ram_used_gb": 0.0641326904296875,
+        "gpu_allocated_gb": 5.5880351066589355
+      },
+      "precision": "int4"
+    }
+  ],
+  "context_length": [
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "context_length": 1024,
+      "inference_time_seconds": 0.0474400520324707,
+      "tokens_per_second": 21585.136527656323,
+      "memory_usage": {
+        "ram_used_gb": 0.018726348876953125,
+        "gpu_allocated_gb": 0.0938720703125
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "context_length": 2048,
+      "inference_time_seconds": 0.0013446807861328125,
+      "tokens_per_second": 1523038.0482269505,
+      "memory_usage": {
+        "ram_used_gb": -0.10057449340820312,
+        "gpu_allocated_gb": 0.17059326171875
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 0.5,
+      "context_length": 4096,
+      "inference_time_seconds": 0.0023844242095947266,
+      "tokens_per_second": 1717815.1368863115,
+      "memory_usage": {
+        "ram_used_gb": 0.000476837158203125,
+        "gpu_allocated_gb": 0.341796875
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "context_length": 1024,
+      "inference_time_seconds": 0.03865456581115723,
+      "tokens_per_second": 26491.04907820316,
+      "memory_usage": {
+        "ram_used_gb": 0.001678466796875,
+        "gpu_allocated_gb": 0.1484375
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "context_length": 2048,
+      "inference_time_seconds": 0.002551555633544922,
+      "tokens_per_second": 802647.5978321809,
+      "memory_usage": {
+        "ram_used_gb": 0.0023956298828125,
+        "gpu_allocated_gb": 0.29547882080078125
+      },
+      "precision": "int4"
+    },
+    {
+      "success": true,
+      "model_params_billions": 1.5,
+      "context_length": 4096,
+      "inference_time_seconds": 0.004051685333251953,
+      "tokens_per_second": 1010937.3416499941,
+      "memory_usage": {
+        "ram_used_gb": 0.000247955322265625,
+        "gpu_allocated_gb": 0.591796875
+      },
+      "precision": "int4"
+    }
+  ],
+  "learning_efficiency": [
+    {
+      "success": false,
+      "model_params_billions": 0.5,
+      "precision": "int4",
+      "context_length": 4096,
+      "error": "mat1 and mat2 must have the same dtype, but got Long and Float"
+    },
+    {
+      "success": false,
+      "model_params_billions": 1.5,
+      "precision": "int4",
+      "context_length": 4096,
+      "error": "mat1 and mat2 must have the same dtype, but got Long and Float"
+    }
+  ]
+}

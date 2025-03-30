@@ -1,0 +1,137 @@
+[
+    {
+        "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+        "param_label": "0.5B",
+        "quantization": "fp16",
+        "success": true,
+        "vram_used_gb": 0.9281730651855469,
+        "load_time_s": 3.7479708194732666,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+        "param_label": "0.5B",
+        "quantization": "8bit",
+        "success": true,
+        "vram_used_gb": 0.5894737243652344,
+        "load_time_s": 1.7810344696044922,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+        "param_label": "0.5B",
+        "quantization": "4bit",
+        "success": true,
+        "vram_used_gb": 0.42637205123901367,
+        "load_time_s": 1.2957448959350586,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+        "param_label": "1.5B",
+        "quantization": "fp16",
+        "success": true,
+        "vram_used_gb": 2.875393867492676,
+        "load_time_s": 11.444253206253052,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+        "param_label": "1.5B",
+        "quantization": "8bit",
+        "success": true,
+        "vram_used_gb": 1.689150333404541,
+        "load_time_s": 2.3917977809906006,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+        "param_label": "1.5B",
+        "quantization": "4bit",
+        "success": true,
+        "vram_used_gb": 1.072282314300537,
+        "load_time_s": 2.0304148197174072,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-7B-Instruct",
+        "param_label": "7.0B",
+        "quantization": "fp16",
+        "success": true,
+        "vram_used_gb": 14.215130805969238,
+        "load_time_s": 185.38714718818665,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-7B-Instruct",
+        "param_label": "7.0B",
+        "quantization": "8bit",
+        "success": true,
+        "vram_used_gb": 8.136301517486572,
+        "load_time_s": 8.488216400146484,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-7B-Instruct",
+        "param_label": "7.0B",
+        "quantization": "4bit",
+        "success": true,
+        "vram_used_gb": 5.194360256195068,
+        "load_time_s": 6.983496189117432,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "param_label": "7.0B Coder",
+        "quantization": "fp16",
+        "success": true,
+        "vram_used_gb": 14.215130805969238,
+        "load_time_s": 35.43037128448486,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "param_label": "7.0B Coder",
+        "quantization": "8bit",
+        "success": true,
+        "vram_used_gb": 8.131646156311035,
+        "load_time_s": 27.068108558654785,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "param_label": "7.0B Coder",
+        "quantization": "4bit",
+        "success": true,
+        "vram_used_gb": 5.195615291595459,
+        "load_time_s": 7.831277847290039,
+        "error": null
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-13B-Instruct",
+        "param_label": "13.0B",
+        "quantization": "fp16",
+        "success": false,
+        "vram_used_gb": null,
+        "load_time_s": null,
+        "error": "Qwen/Qwen2.5-13B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'\nIf this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`"
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-13B-Instruct",
+        "param_label": "13.0B",
+        "quantization": "8bit",
+        "success": false,
+        "vram_used_gb": null,
+        "load_time_s": null,
+        "error": "Qwen/Qwen2.5-13B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'\nIf this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`"
+    },
+    {
+        "model_name": "Qwen/Qwen2.5-13B-Instruct",
+        "param_label": "13.0B",
+        "quantization": "4bit",
+        "success": false,
+        "vram_used_gb": null,
+        "load_time_s": null,
+        "error": "Qwen/Qwen2.5-13B-Instruct is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'\nIf this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`"
+    }
+]

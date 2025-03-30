@@ -1,0 +1,27 @@
+<|system|>
+You are a helpful coding assistant.
+<|user|>
+Create a simple Flask API that returns JSON data
+<|assistant|>
+Here's a simple Flask API that returns JSON data:
+
+```python
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return jsonify({'message': 'Hello, World!'})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+This API returns a simple message in JSON format. You can modify the `message` key to customize the message returned. The `jsonify` function is used to return the JSON data in the response. You can run the API using:
+
+```bash
+$ python app.py
+```
+
+This will start the Flask server and expose the API at `http://localhost:5000`.

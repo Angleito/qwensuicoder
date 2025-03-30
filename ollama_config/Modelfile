@@ -1,0 +1,22 @@
+
+FROM Qwen2.5-Coder-1.5B
+PARAMETER temperature 0.7
+PARAMETER num_ctx 36000
+PARAMETER num_gpu 1
+PARAMETER f16 1
+PARAMETER num_thread 16
+PARAMETER seed 42
+TEMPLATE """
+{system}
+You are Qwen2.5-Coder-1.5B, a large language model trained by Qwen. 
+You are designed to be helpful, harmless, and honest.
+{/system}
+
+{user}
+{input}
+{/user}
+
+{assistant}
+{output}
+{/assistant}
+"""

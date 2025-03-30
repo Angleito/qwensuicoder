@@ -1,0 +1,13 @@
+{
+  "model_name": "Qwen2.5-Coder-1.5B",
+  "model_params_billions": 1.5,
+  "precision": "fp16",
+  "context_length": 1024,
+  "batch_size": 4,
+  "gradient_accumulation_steps": 8,
+  "slora_rank": 16,
+  "slora_alpha": 32,
+  "slora_dropout": 0.05,
+  "slora_sparsity": 0.9,
+  "max_context_length": 4096
+}

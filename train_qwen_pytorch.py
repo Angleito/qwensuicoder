@@ -26,36 +26,50 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class SparseLinearLayer(torch.nn.Module):
-    """SLoRA linear layer implementation"""
+    """
+    Linear layer with sparse low-rank adaptation
+    """
     def __init__(self, base_layer, rank=16, alpha=32, dropout=0.05, sparsity=0.9):
         super().__init__()
         self.base_layer = base_layer
-        self.in_features = base_layer.in_features
-        self.out_features = base_layer.out_features
         self.rank = rank
         self.alpha = alpha
-        self.scaling = alpha / rank
+        self.dropout = dropout
         self.sparsity = sparsity
         
-        # Initialize LoRA matrices
-        self.lora_A = torch.nn.Parameter(torch.zeros(self.in_features, self.rank))
-        self.lora_B = torch.nn.Parameter(torch.zeros(self.rank, self.out_features))
-        self.lora_dropout = torch.nn.Dropout(p=dropout)
+        # Get dimensions
+        in_features = base_layer.in_features
+        out_features = base_layer.out_features
         
-        # Initialize with Kaiming uniform
+        # Initialize LoRA matrices (A: in_features x rank, B: rank x out_features)
+        self.lora_A = torch.nn.Parameter(torch.zeros(in_features, rank))
+        self.lora_B = torch.nn.Parameter(torch.zeros(rank, out_features))
+        
+        # Scaling factor
+        self.scaling = alpha / rank
+        
+        # Initialize A with Kaiming uniform
         torch.nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
+        
+        # Initialize B with zeros
         torch.nn.init.zeros_(self.lora_B)
         
-        # Sparsity mask (1 for active, 0 for inactive)
-        self.register_buffer(
-            "sparsity_mask", 
-            torch.ones(self.in_features, self.rank).bernoulli_(1 - self.sparsity)
-        )
+        # Create dropout layer
+        self.lora_dropout = torch.nn.Dropout(p=dropout)
         
-        # Freeze the base layer
+        # Create sparsity mask
+        self.sparsity_mask = self.create_sparsity_mask(self.lora_A.shape)
+        
+        # Freeze base layer
         for param in self.base_layer.parameters():
             param.requires_grad = False
-            
+    
+    def create_sparsity_mask(self, shape):
+        """Create a binary mask for sparsity"""
+        # Create random binary mask with specified sparsity
+        mask = torch.rand(shape, device=self.lora_A.device) > self.sparsity
+        return mask
+    
     def forward(self, x):
         # Original forward pass
         base_output = self.base_layer(x)
@@ -259,13 +273,13 @@ class SimplifiedQwenModel(torch.nn.Module):
             attention_output = query + key + value
             attention_output = layer["attention"]["output"](attention_output)
             
-            # Skip connection
+            # Add residual connection
             hidden_states = hidden_states + attention_output
             
             # MLP
             mlp_output = layer["mlp"](hidden_states)
             
-            # Skip connection
+            # Add residual connection
             hidden_states = hidden_states + mlp_output
         
         # LM head
@@ -274,14 +288,11 @@ class SimplifiedQwenModel(torch.nn.Module):
         # Calculate loss if labels are provided
         loss = None
         if labels is not None:
-            loss_fn = torch.nn.CrossEntropyLoss()
-            # Reshape for cross entropy: [batch, seq_len, vocab] -> [batch * seq_len, vocab]
-            loss = loss_fn(
-                logits.view(-1, self.vocab_size),
-                labels.view(-1)
-            )
-            
-        return {"loss": loss, "logits": logits} if loss is not None else {"logits": logits}
+            # Simple cross-entropy loss
+            loss_fct = torch.nn.CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.vocab_size), labels.view(-1))
+        
+        return {"logits": logits, "loss": loss}
 
 class SimpleTokenizer:
     """
@@ -414,21 +425,38 @@ class SimpleDataset(Dataset):
 
 # Add resource monitoring and optimization functions
 def get_memory_usage():
-    """Get current memory usage of CPU and GPU"""
+    """Get memory usage statistics for current process"""
+    import psutil
+    
+    # Initialize dictionary
     mem_info = {}
     
-    # CPU memory
-    mem_info["ram_used_gb"] = psutil.virtual_memory().used / (1024 ** 3)
-    mem_info["ram_total_gb"] = psutil.virtual_memory().total / (1024 ** 3)
-    mem_info["ram_percent"] = psutil.virtual_memory().percent
-    mem_info["cpu_count"] = psutil.cpu_count()
+    # Get current process
+    process = psutil.Process()
     
-    # GPU memory if available
+    # Get RAM usage
+    ram_info = psutil.virtual_memory()
+    ram_total_gb = ram_info.total / (1024 ** 3)
+    ram_used_gb = process.memory_info().rss / (1024 ** 3)
+    
+    # Store RAM info
+    mem_info["ram_total_gb"] = ram_total_gb
+    mem_info["ram_used_gb"] = ram_used_gb
+    mem_info["cpu_count"] = psutil.cpu_count(logical=True)
+    
+    # Get GPU info if available
     if torch.cuda.is_available():
-        mem_info["gpu_allocated_gb"] = torch.cuda.memory_allocated() / (1024 ** 3)
-        mem_info["gpu_reserved_gb"] = torch.cuda.memory_reserved() / (1024 ** 3)
-        mem_info["gpu_total_gb"] = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
-        mem_info["gpu_name"] = torch.cuda.get_device_name(0)
+        try:
+            mem_info["gpu_allocated_gb"] = torch.cuda.memory_allocated() / (1024 ** 3)
+            mem_info["gpu_reserved_gb"] = torch.cuda.memory_reserved() / (1024 ** 3)
+            mem_info["gpu_total_gb"] = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+            mem_info["gpu_name"] = torch.cuda.get_device_name(0)
+        except Exception as e:
+            print(f"Error getting GPU memory info: {e}")
+            mem_info["gpu_allocated_gb"] = 0
+            mem_info["gpu_reserved_gb"] = 0
+            mem_info["gpu_total_gb"] = 0
+            mem_info["gpu_name"] = "Unknown"
     
     return mem_info
 
@@ -881,6 +909,10 @@ def load_model_from_benchmark(benchmark_settings_path):
     Returns:
         QwenModelForTraining model with SLoRA applied
     """
+    if not os.path.exists(benchmark_settings_path):
+        logger.error(f"Benchmark settings file not found: {benchmark_settings_path}")
+        raise FileNotFoundError(f"Benchmark settings file not found: {benchmark_settings_path}")
+        
     try:
         # Load benchmark settings
         with open(benchmark_settings_path, 'r') as f:
@@ -947,6 +979,9 @@ def load_model_from_benchmark(benchmark_settings_path):
         
         return model
         
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing benchmark settings file: {e}")
+        raise
     except Exception as e:
         logger.error(f"Error loading model from benchmark: {e}")
         raise
@@ -1003,12 +1038,16 @@ def main():
     # Load settings from benchmark if available
     settings = {}
     if args.settings_file and os.path.exists(args.settings_file):
-        with open(args.settings_file, "r") as f:
-            settings = json.load(f)
-            logger.info(f"Loaded settings from {args.settings_file}")
+        try:
+            with open(args.settings_file, "r") as f:
+                settings = json.load(f)
+                logger.info(f"Loaded settings from {args.settings_file}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing settings file: {e}")
+            return
     
     # Override with explicit arguments if provided
-    model_size = args.model_size_billions or settings.get("model_size_billions", 1.5)
+    model_size = args.model_size_billions or settings.get("model_params_billions", 1.5)
     precision = args.precision or settings.get("precision", "fp16")
     context_length = args.context_length or settings.get("context_length", 1024)
     batch_size = args.batch_size or settings.get("batch_size", 1)
@@ -1034,81 +1073,145 @@ def main():
     logger.info("Loading model...")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    # Create dummy model for testing (in real implementation, load actual model)
-    from dummy_model_loader import create_model_for_size_and_precision
-    model = create_model_for_size_and_precision(
-        model_size_billions=model_size,
-        precision=precision,
-        context_length=context_length,
-        device=device
-    )
+    try:
+        # If we have a settings file, use it to load the model
+        if args.settings_file and os.path.exists(args.settings_file):
+            model = load_model_from_benchmark(args.settings_file)
+        else:
+            # Create simplified model with the requested parameters
+            logger.info(f"Creating simplified model with {model_size}B parameters")
+            # Determine model parameters based on size
+            if model_size <= 0.5:
+                hidden_size = 1024
+                num_layers = 24
+                num_heads = 16
+            elif model_size <= 1.5:
+                hidden_size = 2048
+                num_layers = 24
+                num_heads = 16
+            elif model_size <= 7:
+                hidden_size = 4096
+                num_layers = 32
+                num_heads = 32
+            elif model_size <= 14:
+                hidden_size = 5120
+                num_layers = 40
+                num_heads = 40
+            else:  # 32B or larger
+                hidden_size = 8192
+                num_layers = 64
+                num_heads = 64
+            
+            # Create simplified model
+            base_model = SimplifiedQwenModel(
+                vocab_size=32000,
+                hidden_size=hidden_size,
+                num_layers=num_layers,
+                num_heads=num_heads
+            )
+            
+            # Apply SLoRA
+            config = argparse.Namespace(
+                rank=args.rank,
+                alpha=args.alpha,
+                dropout=0.05,
+                sparsity=args.sparsity,
+                target_modules=["query", "key", "value", "output"]
+            )
+            
+            model = QwenModelForTraining(base_model, config)
+            
+            # Apply precision
+            if precision == "fp16":
+                model = model.half()
+            
+            # Move to device
+            model = model.to(device)
+            
+        logger.info("Model loaded successfully")
+    except Exception as e:
+        logger.error(f"Error loading model: {e}")
+        return
+    
+    # Create tokenizer
+    tokenizer = SimpleTokenizer(vocab_size=32000)
     
     # Load or create datasets
-    if args.train_data:
-        # Load real data
-        logger.info(f"Loading training data from {args.train_data}")
-        train_dataset = load_dataset(args.train_data, context_length=context_length)
-    else:
-        # Create dummy dataset for testing
-        logger.info("Creating dummy training dataset")
-        train_dataset = DummyDataset(
-            seq_length=context_length,
-            size=1000,
-            vocab_size=32000
-        )
-    
-    if args.val_data:
-        # Load real validation data
-        logger.info(f"Loading validation data from {args.val_data}")
-        val_dataset = load_dataset(args.val_data, context_length=context_length)
-    else:
-        # Create dummy validation dataset
-        logger.info("Creating dummy validation dataset")
-        val_dataset = DummyDataset(
-            seq_length=context_length,
-            size=100,
-            vocab_size=32000
-        )
+    try:
+        if args.train_data and os.path.exists(args.train_data):
+            # Load real data
+            logger.info(f"Loading training data from {args.train_data}")
+            train_dataset = SimpleDataset(tokenizer, data=args.train_data, max_length=context_length)
+        else:
+            # Create dummy dataset for testing
+            logger.info("Creating dummy training dataset")
+            train_dataset = SimpleDataset(tokenizer, max_length=context_length)
+            # Generate some random data
+            for i in range(1000):
+                train_dataset.data.append(tokenizer.encode(f"Sample text {i}", add_special_tokens=True))
+        
+        if args.val_data and os.path.exists(args.val_data):
+            # Load real validation data
+            logger.info(f"Loading validation data from {args.val_data}")
+            val_dataset = SimpleDataset(tokenizer, data=args.val_data, max_length=context_length)
+        else:
+            # Create dummy validation dataset
+            logger.info("Creating dummy validation dataset")
+            val_dataset = SimpleDataset(tokenizer, max_length=context_length)
+            # Generate some random data
+            for i in range(100):
+                val_dataset.data.append(tokenizer.encode(f"Validation text {i}", add_special_tokens=True))
+    except Exception as e:
+        logger.error(f"Error creating datasets: {e}")
+        return
     
     # Create dataloaders
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=True
-    )
-    
-    val_dataloader = DataLoader(
-        val_dataset,
-        batch_size=batch_size
-    )
+    try:
+        train_dataloader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True
+        )
+        
+        val_dataloader = DataLoader(
+            val_dataset,
+            batch_size=batch_size
+        )
+    except Exception as e:
+        logger.error(f"Error creating dataloaders: {e}")
+        return
     
     # Train model
-    use_fp16 = (precision == "fp16")
-    training_results = train_model(
-        model=model,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        epochs=args.epochs,
-        lr=args.learning_rate,
-        fp16=use_fp16,
-        slora_rank=args.rank,
-        slora_sparsity=args.sparsity,
-        slora_alpha=args.alpha,
-        output_dir=args.output_dir,
-        eval_steps=args.eval_steps,
-        save_steps=args.save_steps,
-        gradient_accumulation_steps=gradient_accumulation_steps,
-        warmup_steps=args.warmup_steps,
-        adaptive_sparsity=args.adaptive_sparsity,
-        full_resource_utilization=args.full_resource_utilization
-    )
-    
-    # Save final results
-    with open(os.path.join(args.output_dir, "training_results.json"), "w") as f:
-        json.dump(training_results, f, indent=2)
-    
-    logger.info(f"Training complete. Final loss: {training_results['final_loss']:.4f}")
-    logger.info(f"Model saved to {args.output_dir}")
+    try:
+        use_fp16 = (precision == "fp16")
+        training_results = train_model(
+            model=model,
+            train_dataloader=train_dataloader,
+            val_dataloader=val_dataloader,
+            epochs=args.epochs,
+            lr=args.learning_rate,
+            fp16=use_fp16,
+            slora_rank=args.rank,
+            slora_sparsity=args.sparsity,
+            slora_alpha=args.alpha,
+            output_dir=args.output_dir,
+            eval_steps=args.eval_steps,
+            save_steps=args.save_steps,
+            gradient_accumulation_steps=gradient_accumulation_steps,
+            warmup_steps=args.warmup_steps,
+            adaptive_sparsity=args.adaptive_sparsity,
+            full_resource_utilization=args.full_resource_utilization
+        )
+        
+        # Save final results
+        with open(os.path.join(args.output_dir, "training_results.json"), "w") as f:
+            json.dump(training_results, f, indent=2)
+        
+        logger.info(f"Training complete. Final loss: {training_results['final_loss']:.4f}")
+        logger.info(f"Model saved to {args.output_dir}")
+    except Exception as e:
+        logger.error(f"Error during training: {e}")
+        return
 
 if __name__ == "__main__":
     main() 

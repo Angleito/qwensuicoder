@@ -168,6 +168,9 @@ class QwenCoderManager:
             model_name = model_name.lower().replace(".", "-")
             output_dir = os.path.join(self.models_dir, model_name)
         
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+        
         # Build command
         cmd = [
             "python", "train_qwen_pytorch.py",
@@ -184,6 +187,7 @@ class QwenCoderManager:
         
         # Run training
         try:
+            logger.info(f"Starting training with command: {' '.join(cmd)}")
             subprocess.run(cmd, check=True)
             
             # Save SLora config
@@ -200,9 +204,14 @@ class QwenCoderManager:
             # Reload config
             self.slora_config = self._load_slora_config()
             
+            logger.info(f"Training completed successfully. Model saved to {output_dir}")
             return True
+            
         except subprocess.CalledProcessError as e:
-            logger.error(f"Training failed: {e}")
+            logger.error(f"Training failed with error code {e.returncode}: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Training failed with exception: {e}")
             return False
     
     def inference_with_ollama(self, prompt, model_tag=None) -> str:
@@ -385,6 +394,8 @@ def main():
                         help="Prompt for inference")
     parser.add_argument("--force", action="store_true", 
                         help="Force reconfiguration of Ollama")
+    parser.add_argument("--no-slora", action="store_true",
+                        help="Don't use SLora for inference")
     args = parser.parse_args()
     
     # Create manager

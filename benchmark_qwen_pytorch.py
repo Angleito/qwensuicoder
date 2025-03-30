@@ -523,9 +523,10 @@ def visualize_results(results, output_dir):
                 else:
                     speed_values.append(0)
             
+            # Only plot if we have data for this precision
             if any(speed_values):
                 plt.bar(x + i*width - width*1.5, speed_values, width, 
-                       label=f"{precision}", color=colors[precision])
+                       label=precision, color=colors[precision])
         
         plt.xlabel('Model Size (Billion parameters)')
         plt.ylabel('Training Speed (tokens/sec)')
@@ -551,9 +552,10 @@ def visualize_results(results, output_dir):
                 else:
                     memory_values.append(0)
             
+            # Only plot if we have data for this precision
             if any(memory_values):
                 plt.bar(x + i*width - width*1.5, memory_values, width, 
-                       label=f"{precision}", color=colors[precision])
+                       label=precision, color=colors[precision])
         
         plt.xlabel('Model Size (Billion parameters)')
         plt.ylabel('Memory Usage During Training (GB)')
@@ -561,6 +563,7 @@ def visualize_results(results, output_dir):
         plt.xticks(x, [f"{size}B" for size in model_sizes])
         plt.legend()
         plt.grid(axis='y')
+        plt.ylim(0, np.max(memory_values) if any(memory_values) else 1.0)
         plt.tight_layout()
         plt.savefig(os.path.join(output_dir, "training_memory.png"))
 
@@ -747,7 +750,7 @@ You are designed to be helpful, harmless, and honest.
             f.write(modelfile_content)
         
         # Create model in Ollama
-        model_tag = f"qwen-coder-{model_params}b"
+        model_tag = f"qwen-coder-{int(model_params)}b"
         logger.info(f"Creating Ollama model with tag: {model_tag}")
         result = subprocess.run(
             ["ollama", "create", model_tag, "-f", "ollama_config/Modelfile"],
@@ -833,7 +836,7 @@ def main():
     
     # Filter model sizes if a max size is specified
     test_model_sizes = MODEL_SIZES
-    if args.max_model_size:
+    if args.max_model_size is not None:
         test_model_sizes = [size for size in MODEL_SIZES if size["params"] <= args.max_model_size]
     
     # Run benchmarks

@@ -1,0 +1,48 @@
+<|system|>
+You are a helpful coding assistant.
+<|user|>
+Implement a binary search algorithm in Python
+<|assistant|>
+Here's a Python implementation of binary search:
+
+```python
+def binary_search(arr, target):
+    """
+    Binary search algorithm implementation in Python.
+    Takes an array `arr` and a target value `target` as input.
+    Returns the index of `target` in `arr` or `-1` if `target` is not found.
+    """
+    low = 0
+    high = len(arr) - 1
+    
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    return -1
+```
+
+Explanation:
+
+1. The `binary_search` function takes an array `arr` and a target value `target`.
+2. It initializes the `low` and `high` indices to 0 and len(arr) - 1 respectively.
+3. The while loop continues until the `high` index is greater than or equal to the `low` index.
+4. In the inner loop, it compares the current element `arr[mid]` with `target` and returns the index of `target` if found, or `-1` if not found.
+5. The function returns `-1` if `target` is not found in the array.
+6. If `target` is found at the index returned by the binary search, the function returns the index.
+7. Otherwise, the function returns `-1`.
+
+Note: This implementation assumes that the array `arr` contains only positive integers.
+
+Example usage:
+
+```python
+arr = [3, 6, 9, 12, 15]
+target = 12
+print(binary_search(arr, target))  # Returns 2
+```

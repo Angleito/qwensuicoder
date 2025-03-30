@@ -99,23 +99,30 @@ def optimize_linux_gpu_memory():
         
         # Check for nvidia-smi
         if os.system('which nvidia-smi > /dev/null 2>&1') != 0:
+            logger.warning("nvidia-smi not found in PATH, skipping GPU optimization")
             return False
         
         logger.info("Optimizing NVIDIA settings on Linux...")
         
         # Set compute mode to exclusive process (might require sudo)
         try:
-            os.system('nvidia-smi -c 3 > /dev/null 2>&1')
-            logger.info("Set compute mode to exclusive process")
-        except:
-            pass
+            result = os.system('nvidia-smi -c 3 > /dev/null 2>&1')
+            if result == 0:
+                logger.info("Set compute mode to exclusive process")
+            else:
+                logger.warning("Failed to set compute mode to exclusive process (may require sudo)")
+        except Exception as e:
+            logger.warning(f"Error setting compute mode: {e}")
             
         # Try to disable ECC if available (might require sudo)
         try:
-            os.system('nvidia-smi --ecc-config=0 > /dev/null 2>&1')
-            logger.info("Disabled ECC memory if supported")
-        except:
-            pass
+            result = os.system('nvidia-smi --ecc-config=0 > /dev/null 2>&1')
+            if result == 0:
+                logger.info("Disabled ECC memory if supported")
+            else:
+                logger.warning("Failed to disable ECC memory (may require sudo or not supported on this GPU)")
+        except Exception as e:
+            logger.warning(f"Error configuring ECC memory: {e}")
             
         return True
     except Exception as e:
